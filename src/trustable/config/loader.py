@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
@@ -12,6 +13,7 @@ from trustable.config.errors import (
     format_validation_error,
 )
 from trustable.config.schema import ModuleConfig, TrustableConfig
+from trustable.plugins.discovery import DiscoveryError, discover_modules
 from trustable.plugins.registry import ModuleRegistry
 
 
@@ -59,3 +61,20 @@ def validate_modules(
                 f"module '{name}' config is invalid:\n{format_validation_error(exc)}"
             ) from exc
     return typed
+
+
+@dataclass
+class LoadedConfig:
+    config: TrustableConfig
+    module_configs: dict[str, ModuleConfig]
+    discovery_errors: list[DiscoveryError]
+
+
+def load_config(path: Path | None, registry: ModuleRegistry) -> LoadedConfig:
+    resolved = path if path is not None else find_config()
+    config = parse_envelope(resolved)
+    discovery_errors = discover_modules(config, registry)
+    module_configs = validate_modules(config, registry)
+    return LoadedConfig(
+        config=config, module_configs=module_configs, discovery_errors=discovery_errors
+    )
