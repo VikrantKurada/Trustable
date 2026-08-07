@@ -10,9 +10,13 @@ from trustable.cli.modules_cmd import register_modules
 from trustable.cli.validate import register_validate
 
 
+def _version_string() -> str:
+    return f"trustable {__version__} (Python {sys.version.split()[0]})"
+
+
 def _version_callback(value: bool) -> None:
     if value:
-        typer.echo(f"trustable {__version__} (Python {sys.version.split()[0]})")
+        typer.echo(_version_string())
         raise typer.Exit()
 
 
@@ -31,7 +35,7 @@ def create_app() -> typer.Typer:
     @app.command()
     def version() -> None:
         """Print version information."""
-        typer.echo(f"trustable {__version__} (Python {sys.version.split()[0]})")
+        typer.echo(_version_string())
 
     register_validate(app)
     register_modules(app)
@@ -56,7 +60,7 @@ def build_app() -> typer.Typer:
         for module in runtime.modules:
             if isinstance(module, CommandProvider):
                 module.register_cli(app)
-    except Exception:  # noqa: BLE001, S110 - never let mounting break core commands
+    except Exception:  # noqa: BLE001 - never let mounting break core commands
         pass
     return app
 
