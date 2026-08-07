@@ -5,6 +5,7 @@ import sys
 import typer
 
 from trustable import __version__
+from trustable.cli.validate import register_validate
 
 
 def _version_callback(value: bool) -> None:
@@ -30,6 +31,7 @@ def create_app() -> typer.Typer:
         """Print version information."""
         typer.echo(f"trustable {__version__} (Python {sys.version.split()[0]})")
 
+    register_validate(app)
     return app
 
 
