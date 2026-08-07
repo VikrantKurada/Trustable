@@ -5,6 +5,7 @@ import sys
 import typer
 
 from trustable import __version__
+from trustable.cli.modules_cmd import register_modules
 from trustable.cli.validate import register_validate
 
 
@@ -32,6 +33,7 @@ def create_app() -> typer.Typer:
         typer.echo(f"trustable {__version__} (Python {sys.version.split()[0]})")
 
     register_validate(app)
+    register_modules(app)
     return app
 
 
