@@ -1,0 +1,22 @@
+version: "1.0"
+project: "my-llm-app"
+
+modules:
+  security:
+    enabled: false
+    pii_masking: ["EMAIL", "API_KEYS"]
+    block_injections: true
+
+  audit:
+    enabled: false
+    sink: "local"
+    log_level: "silver"
+
+  test:
+    enabled: false
+    evaluator_model: "ollama/llama3"
+    golden_dataset: "./tests/golden_data.json"
+
+  explainability:
+    enabled: false
+    capture_rag_context: true

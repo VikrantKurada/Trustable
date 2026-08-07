@@ -5,6 +5,7 @@ import sys
 import typer
 
 from trustable import __version__
+from trustable.cli.init_cmd import register_init
 from trustable.cli.modules_cmd import register_modules
 from trustable.cli.validate import register_validate
 
@@ -34,12 +35,30 @@ def create_app() -> typer.Typer:
 
     register_validate(app)
     register_modules(app)
+    register_init(app)
     return app
 
 
 def build_app() -> typer.Typer:
-    """Core app plus best-effort dynamically-mounted module commands (see Task 12)."""
-    return create_app()
+    """Core app plus best-effort dynamically-mounted enabled module commands."""
+    from trustable.config.loader import load_config
+    from trustable.plugins.capabilities import CommandProvider
+    from trustable.plugins.registry import ModuleRegistry
+    from trustable.runtime.runtime import TrustableRuntime
+
+    app = create_app()
+    try:
+        registry = ModuleRegistry()
+        loaded = load_config(None, registry)
+        runtime = TrustableRuntime.from_config(
+            loaded.config, loaded.module_configs, registry
+        )
+        for module in runtime.modules:
+            if isinstance(module, CommandProvider):
+                module.register_cli(app)
+    except Exception:  # noqa: BLE001, S110 - never let mounting break core commands
+        pass
+    return app
 
 
 def main() -> None:
