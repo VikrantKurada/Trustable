@@ -644,7 +644,7 @@ from trustable.config.errors import (
     ConfigValidationError,
 )
 from trustable.config.loader import find_config, parse_envelope, validate_modules
-from trustable.config.schema import ModuleConfig, SecurityConfig
+from trustable.config.schema import AuditConfig, SecurityConfig
 from trustable.plugins.module import ModuleSpec
 from trustable.plugins.registry import ModuleRegistry
 
@@ -666,7 +666,7 @@ modules:
 def _registry() -> ModuleRegistry:
     reg = ModuleRegistry()
     reg.register(ModuleSpec("security", lambda c: object(), SecurityConfig, 10))
-    reg.register(ModuleSpec("audit", lambda c: object(), ModuleConfig, 30))
+    reg.register(ModuleSpec("audit", lambda c: object(), AuditConfig, 30))
     return reg
 
 
