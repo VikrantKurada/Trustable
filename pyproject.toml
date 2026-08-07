@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "trustable"
+version = "0.1.0"
+description = "LLM quality & governance overlay"
+requires-python = ">=3.11"
+dependencies = ["typer>=0.12", "pydantic>=2.6", "pyyaml>=6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+
+[project.scripts]
+trustable = "trustable.cli.main:main"
+
+# Third-party plugins advertise the "trustable.modules" entry-point group in their own
+# pyproject; built-in modules are registered in code, so this package declares none.
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trustable"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
