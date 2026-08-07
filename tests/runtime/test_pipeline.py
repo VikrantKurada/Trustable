@@ -1,4 +1,3 @@
-
 from trustable.plugins.context import InteractionContext
 from trustable.runtime.pipeline import Pipeline
 
@@ -16,6 +15,19 @@ class RecordingInput:
 
 class ThrowingInput:
     def check_input(self, ctx):
+        raise RuntimeError("boom")
+
+
+class RecordingOutput:
+    def __init__(self, tag):
+        self.tag = tag
+
+    def check_output(self, ctx):
+        ctx.records.append({"out": self.tag})
+
+
+class ThrowingOutput:
+    def check_output(self, ctx):
         raise RuntimeError("boom")
 
 
@@ -44,6 +56,12 @@ def test_throwing_module_is_failed_open():
     ctx = InteractionContext(prompt="x")
     Pipeline([ThrowingInput(), RecordingInput("b")]).run_input_guards(ctx)
     assert ctx.records == [{"in": "b"}]  # pipeline survived the exception
+
+
+def test_throwing_output_guard_is_failed_open():
+    ctx = InteractionContext(prompt="x")
+    Pipeline([ThrowingOutput(), RecordingOutput("b")]).run_output_guards(ctx)
+    assert ctx.records == [{"out": "b"}]  # pipeline survived the exception
 
 
 def test_trace_context_manager_wraps():
