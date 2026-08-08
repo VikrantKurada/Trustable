@@ -33,7 +33,7 @@ def register_validate(app: typer.Typer) -> None:
 
         enabled = [n for n, c in loaded.module_configs.items() if c.enabled]
         typer.secho(
-            f"trustable.yaml is valid — project '{loaded.config.project}', "
+            f"trustable.yaml is valid - project '{loaded.config.project}', "
             f"enabled modules: {', '.join(enabled) or '(none)'}",
             fg=typer.colors.GREEN,
         )

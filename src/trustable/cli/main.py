@@ -22,7 +22,7 @@ def _version_callback(value: bool) -> None:
 
 def create_app() -> typer.Typer:
     """Assemble the core CLI app (no dynamic module commands)."""
-    app = typer.Typer(help="Trustable — LLM quality & governance overlay", no_args_is_help=True)
+    app = typer.Typer(help="Trustable - LLM quality & governance overlay", no_args_is_help=True)
 
     @app.callback()
     def _root(

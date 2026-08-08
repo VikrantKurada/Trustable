@@ -119,6 +119,8 @@ Everything in Trustable is bent toward these. If a feature violates one, it's th
 
 ## Contributing & license
 
-This is early. The [roadmap](docs/roadmap.md) is the best map of where help is useful. A license hasn't been chosen yet — until one lands, treat the code as source-available for reading and evaluation, and open an issue if you want to use it for something.
+This is early. The [roadmap](docs/roadmap.md) is the best map of where help is useful.
+
+Licensed under **[Apache-2.0](LICENSE)** — permissive, with an explicit patent grant, which is the right fit for a tool meant to be built on. Use it, fork it, ship it. Open an issue if you want to build a module.
 
 The design record lives in the repo, not just in someone's head: see [`docs/superpowers/specs`](docs/superpowers/specs) for the Foundation design and [`docs/superpowers/plans`](docs/superpowers/plans) for how it was built.
