@@ -20,7 +20,7 @@ The Foundation already provides the substrate this builds on:
 
 ### Decisions locked in during brainstorming
 
-- **Scope: OTel as the backbone.** OpenTelemetry is the actual tracing layer (real spans + exporters), not just a seam. Medallion sinks are implemented as custom OTel span exporters.
+- **Scope: OTel as the backbone.** OpenTelemetry is the actual tracing layer — each interaction is a real OTel span on a real `TracerProvider`, so any standard OTLP exporter can be attached. The local Bronze/Silver medallion sinks are written **directly from the `InteractionContext`** by the Audit module (not as span exporters — see §5 for why).
 - **Decorator DX: convention + escape hatches on a context-manager.** A default extraction convention that works for the common `str -> str` shape, overridable with explicit `prompt=`/`response=` extractors, all built on a public `trace()` / `atrace()` context-manager.
 - **Sync and async both.** `@trustable.trace` auto-detects `async def`; `atrace()` is the async context-manager.
 - **Response policy: observe by default, managed opt-in** (§4).
@@ -139,14 +139,14 @@ A real `Tracer` (priority 30) replacing the stub. Where "OTel as the backbone" l
 
 Full prompt/response **payloads are not forced onto span attributes** (size limits, backend pollution). They live in the sink records, and optionally attach as span **events** behind `capture_payloads_as_events` (default off).
 
-**TracerProvider & sinks.** On first use the module configures a global `TracerProvider` with a custom `SpanProcessor` that fans finished spans out to the enabled medallion **SpanExporters**:
-- **Bronze** — raw span (all attributes/events + full payload) as JSONL; the forensic record.
+**TracerProvider.** On first use the module ensures a global `TracerProvider` exists and gets a `Tracer` from it. Each interaction is a real span (opened in `start_trace`, closed in `end_trace`) carrying the lean `gen_ai.*` attributes above. A developer adds a standard OTLP exporter to that provider to ship traces to Jaeger/Grafana/Honeycomb — a documented one-liner, the OTel bet's payoff.
+
+**Medallion sinks (written directly from `ctx`).** The sinks are deliberately *not* OTel span exporters: a `SpanExporter` only sees `ReadableSpan`s, so a Silver record with full payloads plus Explainability's `ctx.records` would force all of it onto span attributes, bloating every external backend. Instead, on `end_trace` the module writes the medallion tiers straight from the `InteractionContext`, which already holds everything:
+- **Bronze** — the full raw record (prompt, response, all metadata, all `ctx.records`, timing) as JSONL; the forensic record.
 - **Silver** — a cleaned, flattened record `{id, ts, name, model, prompt, response, tokens, latency_ms, source_documents, reasoning, ...}`, pulling from `ctx` including Explainability's `ctx.records`; the queryable record.
 - **Gold** — deferred; a logged no-op if selected.
 
-`log_level` selects the highest tier written: `bronze` → Bronze; `silver` → Bronze + Silver; `gold` → + Gold (no-op).
-
-Because the sinks are ordinary OTel exporters, a developer adds a standard OTLP exporter alongside ours to ship traces to Jaeger/Grafana/Honeycomb — a documented one-liner, not something we build. That interoperability is the OTel bet's payoff.
+`log_level` selects the highest tier written: `bronze` → Bronze; `silver` → Bronze + Silver; `gold` → + Gold (no-op). Full payloads optionally *also* attach to the OTel span as events behind `capture_payloads_as_events` (default off), for developers who want them in their external tracing backend.
 
 **Dependency.** `opentelemetry-api` + `opentelemetry-sdk` ship as the optional extra `trustable[audit]`, imported lazily inside `modules/audit/` (never at package import). If `audit` is enabled without the extra, the module raises a **clear, actionable error when the runtime is built** (fail-loud on a setup problem).
 
